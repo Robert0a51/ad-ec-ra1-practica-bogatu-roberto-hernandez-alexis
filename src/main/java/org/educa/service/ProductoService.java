@@ -3,18 +3,17 @@ package org.educa.service;
 import generated.Producto;
 import generated.Productos;
 import jakarta.xml.bind.JAXBException;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
 import org.educa.dao.ProductoDAO;
 import org.educa.dao.ProductoDAOImpl;
 import org.educa.entity.ProductoEntity;
 import org.educa.entity.SummaryEntity;
 import org.xml.sax.SAXException;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -148,5 +147,41 @@ public class ProductoService {
             celda.setCellValue(cabeceras[i]);
             celda.setCellStyle(estiloCabecera);
         }
+
+        int numFila = 1;
+        for (ProductoEntity p : listaProductos) {
+            Row fila = hoja.createRow(numFila);
+            fila.createCell(0).setCellValue(p.getProducto().getCodigo());
+            fila.createCell(1).setCellValue(p.getProducto().getNumeroSerie());
+            fila.createCell(2).setCellValue(p.getProducto().getPrecio().doubleValue());
+            fila.createCell(3).setCellValue(p.getProducto().getDescuento().doubleValue() / 100);
+            fila.createCell(4).setCellValue(p.getPrecioFinal().doubleValue());
+            fila.createCell(5).setCellValue(p.getProducto().getCostes().getCostesEnvio().doubleValue());
+            fila.createCell(6).setCellValue(p.getProducto().getCostes().getCostesAlmacenaje().doubleValue());
+            fila.createCell(7).setCellValue(p.getProfit().doubleValue());
+
+            //aplicamos los colores distintos por fila
+            CellStyle estiloActual = (numFila % 2 == 0) ? estiloFilaPar : estiloFilaImpar;
+            for (int i = 0; i < cabeceras.length; i++) {
+                fila.getCell(i).setCellStyle(estiloActual);
+            }
+            numFila++;
+        }
+
+        // el tamaño de las columnas
+        for (int i = 0; i < cabeceras.length; i++) {
+            hoja.autoSizeColumn(i);
+        }
+
+        File carpetaDestino = new File(path);
+        if (!carpetaDestino.exists()) {
+            carpetaDestino.mkdir();
+        }
+
+        FileOutputStream archivoSalida = new FileOutputStream(path + "exportado_" + fecha + ".xlsx");
+        libro.write(archivoSalida);
+
+        archivoSalida.close();
+        libro.close();
     }
 }
