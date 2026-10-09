@@ -9,7 +9,11 @@ import org.educa.entity.ProductoEntity;
 import org.educa.entity.SummaryEntity;
 import org.xml.sax.SAXException;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
@@ -83,6 +87,25 @@ public class ProductoService {
         resumen.setFileAbsolutePath(archivoXml.getAbsolutePath());
         resumen.setFileName(nombreSinExtension);
         resumen.setFileSize(archivoXml.length());
+
+        // miramos si la carptea existe y sino la crea
+
+        File carpetaDestino = new File(path);
+            if (!carpetaDestino.exists()) {
+                carpetaDestino.mkdir();
+            }
+
+            // escribimos
+
+            File ficheroTxt = new File(path + "resultado" + fecha + ".txt");
+            FileWriter fw = new FileWriter(ficheroTxt);
+            BufferedWriter bw = new BufferedWriter(fw);
+
+            // el elemento toPrint no da el formato que quermeos
+            bw.write(resumen.toPrint());
+
+            bw.close();
+            fw.close();
     }
 
     public void exportExcel(String path, String fileXml) throws JAXBException, IOException, ParseException {
