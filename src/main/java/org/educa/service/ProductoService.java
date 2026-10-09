@@ -3,6 +3,8 @@ package org.educa.service;
 import generated.Producto;
 import generated.Productos;
 import jakarta.xml.bind.JAXBException;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.educa.dao.ProductoDAO;
 import org.educa.dao.ProductoDAOImpl;
 import org.educa.entity.ProductoEntity;
@@ -108,7 +110,43 @@ public class ProductoService {
             fw.close();
     }
 
+    /**
+     * Exporta los datoss a un excel usando Apache POI
+     *
+     * @param path carpeta destino
+     * @param fileXml archivo de origen
+     * @throws JAXBException
+     * @throws IOException
+     * @throws ParseException
+     */
     public void exportExcel(String path, String fileXml) throws JAXBException, IOException, ParseException {
-        //TODO: Implementar
+        List<ProductoEntity> listaProductos = readFile(fileXml);
+        java.io.File archivoXml = new java.io.File(fileXml);
+        String fecha = archivoXml.getName().replace("inventario_", "").replace(".xml", "");
+
+        org.apache.poi.ss.usermodel.Workbook libro = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+        org.apache.poi.ss.usermodel.Sheet hoja = libro.createSheet("Inventario");
+
+        //estilo cabecera en negrita
+        org.apache.poi.ss.usermodel.CellStyle estiloCabecera = libro.createCellStyle();
+        org.apache.poi.ss.usermodel.Font fuenteNegrita = libro.createFont();
+        fuenteNegrita.setBold(true);
+        estiloCabecera.setFont(fuenteNegrita);
+        estiloCabecera.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+
+        //estilos para los colores alternos
+        org.apache.poi.ss.usermodel.CellStyle estiloFilaPar = libro.createCellStyle();
+        estiloFilaPar.setFillForegroundColor(IndexedColors.LIGHT_TURQUOISE.getIndex());
+        estiloFilaPar.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        org.apache.poi.ss.usermodel.CellStyle estiloFilaImpar = libro.createCellStyle();
+
+        org.apache.poi.ss.usermodel.Row filaCabecera = hoja.createRow(0);
+        String[] cabeceras = {"Codigo", "Numero de Serie", "Precio", "Descuento", "Precio Final", "Costes Envio", "Costes Almacenaje", "Beneficio"};
+        for (int i = 0; i < cabeceras.length; i++) {
+            org.apache.poi.ss.usermodel.Cell celda = filaCabecera.createCell(i);
+            celda.setCellValue(cabeceras[i]);
+            celda.setCellStyle(estiloCabecera);
+        }
     }
 }
